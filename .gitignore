@@ -17,3 +17,7 @@ __pycache__/
 # Fichiers générés
 dist/
 build/
+
+# Données des utilisateurs (enregistrements, analyses)
+backend/data/
+data/
