@@ -1,0 +1,42 @@
+@import "tailwindcss";
+@import "@fontsource-variable/fraunces";
+@import "@fontsource-variable/figtree";
+
+@theme {
+  --font-sans: "Figtree Variable", system-ui, sans-serif;
+  --font-display: "Fraunces Variable", Georgia, serif;
+  --color-night-950: #070a1c;
+  --color-night-900: #0b1026;
+  --color-night-800: #121938;
+  --color-night-700: #1b2450;
+  --color-night-600: #2a3570;
+  --color-plum-500: #7c5ce0;
+  --color-plum-400: #9b82f0;
+  --color-plum-300: #bdaaf7;
+  --color-gold-400: #e3b653;
+  --color-gold-300: #f0cf85;
+  --color-mist: #a9b0d0;
+}
+
+html, body, #root { height: 100%; }
+body {
+  background: var(--color-night-950);
+  color: #fff;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+:focus-visible { outline: 2px solid var(--color-gold-400); outline-offset: 2px; border-radius: 4px; }
+::selection { background: var(--color-plum-500); }
+.panel { background: var(--color-night-900); border: 1px solid var(--color-night-700); border-radius: 14px; }
+.btn { display: inline-flex; align-items: center; gap: .5rem; padding: .55rem .95rem; border-radius: 10px;
+  font-weight: 600; font-size: .9rem; transition: background .15s, border-color .15s, opacity .15s; cursor: pointer; }
+.btn:disabled { opacity: .4; cursor: not-allowed; }
+.btn-gold { background: var(--color-gold-400); color: #1a1403; }
+.btn-gold:hover:not(:disabled) { background: var(--color-gold-300); }
+.btn-ghost { border: 1px solid var(--color-night-600); color: #fff; }
+.btn-ghost:hover:not(:disabled) { background: var(--color-night-700); }
+.label { font-size: .7rem; letter-spacing: .12em; text-transform: uppercase; color: var(--color-mist); font-weight: 600; }
+@media (prefers-reduced-motion: no-preference) {
+  .rise { animation: rise .35s ease-out both; }
+  @keyframes rise { from { opacity: 0; transform: translateY(6px); } }
+}
