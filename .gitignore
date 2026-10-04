@@ -1,0 +1,19 @@
+# Dépendances Node.js
+node_modules/
+**/node_modules/
+
+# Environnements Python
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+
+# Fichiers temporaires
+*.log
+.env
+.env.*
+!.env.example
+
+# Fichiers générés
+dist/
+build/
