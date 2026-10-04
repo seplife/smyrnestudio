@@ -2,7 +2,7 @@
 // La mélodie détectée est confiée au soprano ; les autres voix sont harmonisées à partir des
 // accords détectés (notes de l'accord, conduite des voix par plus court déplacement).
 import PDFDocument from "pdfkit";
-import { NOTES_EN } from "./analysis.js";
+import { CHORD_QUALITIES, NOTES_EN } from "./analysis.js";
 import { ExportError, quantize, split } from "./export.js";
 
 export const VOIX = [
@@ -19,12 +19,12 @@ const SHARP = [["C", 0], ["C", 1], ["D", 0], ["D", 1], ["E", 0], ["F", 0], ["F",
 const FLAT = [["C", 0], ["D", -1], ["D", 0], ["E", -1], ["E", 0], ["F", 0], ["G", -1], ["G", 0], ["A", -1], ["A", 0], ["B", -1], ["B", 0]];
 const LETTER = { C: 0, D: 1, E: 2, F: 3, G: 4, A: 5, B: 6 };
 
-/** Classes de hauteur d'un nom d'accord ("C", "Am", "Bb"...) ; racine en premier. */
+/** Classes de hauteur d'un nom d'accord ("C", "Am", "Bb", "G7", "Dsus4"...) ; racine en premier. */
 function chordPcs(name) {
-  const m = /^([A-G][b#]?)(m?)$/.exec(name || "");
-  if (!m) return null;
+  const m = /^([A-G][b#]?)(.*)$/.exec(name || "");
+  if (!m || !(m[2] in CHORD_QUALITIES)) return null;
   const r = NOTES_EN.indexOf(m[1]);
-  return r < 0 ? null : [r, (r + (m[2] ? 3 : 4)) % 12, (r + 7) % 12];
+  return r < 0 ? null : CHORD_QUALITIES[m[2]].map((k) => (r + k) % 12);
 }
 
 /** Attribue une hauteur à chacune des 6 voix pour chaque note (null pour un silence). */

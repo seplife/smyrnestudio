@@ -26,7 +26,7 @@ export async function analyze(file, workPath = null, progress = () => {}) {
 
   const limites = [
     "Mélodie : suivi d'une seule voix (YIN). Sur un mixage complet ou un chœur, il faudra isoler la voix au préalable (phase 3).",
-    "Accords : triades majeures/mineures uniquement.",
+    "Accords : triades, sus2/sus4, diminués, augmentés, 7e et 9e ; pas de renversements.",
     "Mesure : hypothèse binaire/ternaire à confirmer.",
   ];
   if (!melodie.notes.length) limites.unshift("Aucune mélodie exploitable détectée : aucune note n'a été inventée.");

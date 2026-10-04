@@ -152,15 +152,22 @@ export function key(ch) {
   return { ...hypotheses[0], hypotheses };
 }
 
+/** Qualités d'accord reconnues : suffixe → intervalles en demi-tons depuis la fondamentale. */
+export const CHORD_QUALITIES = {
+  "": [0, 4, 7], m: [0, 3, 7], dim: [0, 3, 6], aug: [0, 4, 8], sus2: [0, 2, 7], sus4: [0, 5, 7],
+  7: [0, 4, 7, 10], maj7: [0, 4, 7, 11], m7: [0, 3, 7, 10], m7b5: [0, 3, 6, 10], dim7: [0, 3, 6, 9],
+  9: [0, 4, 7, 10, 2], maj9: [0, 4, 7, 11, 2], m9: [0, 3, 7, 10, 2],
+};
+
 const TEMPLATES = [];
 for (let i = 0; i < 12; i++)
-  for (const [suf, iv] of [["", [0, 4, 7]], ["m", [0, 3, 7]]]) {
+  for (const [suf, iv] of Object.entries(CHORD_QUALITIES)) {
     const t = new Array(12).fill(0);
-    for (const k of iv) t[(i + k) % 12] = 1 / Math.sqrt(3);
-    TEMPLATES.push({ name: NOTES_EN[i] + suf, t });
+    for (const k of iv) t[(i + k) % 12] = 1 / Math.sqrt(iv.length);
+    TEMPLATES.push({ name: NOTES_EN[i] + suf, t, malus: 0.03 * (iv.length - 3) });
   }
 
-/** Accords majeurs/mineurs par gabarits sur le chroma moyenné entre deux temps. Pas de 7e, sus, ni renversements. */
+/** Accords (triades, sus, 7e, 9e, diminués, augmentés) par gabarits sur le chroma moyenné entre deux temps. Pas de renversements. */
 export function chords(ch, sr, beats, duration) {
   let bounds = beats.length >= 4 ? [...beats] : Array.from({ length: Math.ceil(duration / 0.5) }, (_, i) => i * 0.5);
   bounds = [...new Set([0, ...bounds, duration])].sort((a, b) => a - b);
@@ -173,7 +180,7 @@ export function chords(ch, sr, beats, duration) {
     for (let f = f0; f <= Math.min(f1, ch.length - 1); f++) for (let i = 0; i < 12; i++) v[i] += ch[f][i];
     const norm = Math.hypot(...v);
     if (norm < 1e-9) continue;
-    const sims = TEMPLATES.map(({ name, t }) => ({ name, s: t.reduce((a, x, i) => a + (x * v[i]) / norm, 0) })).sort((a, b) => b.s - a.s);
+    const sims = TEMPLATES.map(({ name, t, malus }) => ({ name, s: t.reduce((a, x, i) => a + (x * v[i]) / norm, 0) - malus })).sort((a, b) => b.s - a.s);
     const conf = clip((sims[0].s - 0.5) * 2) * clip((sims[0].s - sims[1].s) * 8 + 0.5);
     const last = out[out.length - 1];
     if (last && last.accord === sims[0].name) {

@@ -23,6 +23,7 @@ export async function buildApp({
   maxMb = Number(process.env.CHOIR_MAX_MB || 100), // limite configurable (§3.B)
   concurrency = Number(process.env.CHOIR_WORKERS || 2),
   logger = false,
+  resume = false, // relance au démarrage l'analyse récente interrompue
 } = {}) {
   const app = Fastify({ logger });
   await app.register(multipart, { limits: { fileSize: maxMb * 1024 * 1024, files: 1 } });
@@ -260,6 +261,23 @@ export async function buildApp({
   const dist = path.resolve(here, "../../frontend/dist");
   if (existsSync(dist)) await app.register(fastifyStatic, { root: dist });
   app.setNotFoundHandler((_req, reply) => reply.code(404).send({ detail: "Ressource introuvable." }));
+
+  // Reprise après redémarrage : relance le projet le plus récent resté sans analyse (moins de 30 min),
+  // sans toucher aux anciens échecs ni saturer la machine avec tous les fichiers en attente.
+  if (resume && existsSync(dataDir)) {
+    let latest = null;
+    for (const pid of await readdir(dataDir)) {
+      const d = dir(pid);
+      if (!/^[a-f0-9]{12}$/.test(pid) || !existsSync(path.join(d, "meta.json")) || existsSync(path.join(d, "analyse.json"))) continue;
+      const m = await meta(pid).catch(() => null), orig = (await readdir(d)).find((f) => f.startsWith("original."));
+      if (m && orig && Date.now() / 1000 - m.cree_le < 1800 && (!latest || m.cree_le > latest.cree_le)) latest = { pid, src: path.join(d, orig), cree_le: m.cree_le };
+    }
+    if (latest) {
+      jobs.set(latest.pid, { statut: "en_cours", progression: 0, etape: "Reprise après redémarrage" });
+      queue.push({ pid: latest.pid, src: latest.src });
+      pump();
+    }
+  }
 
   app.addHook("onClose", async () => { await Promise.all([...jobs.values()].map((j) => j.worker?.terminate())); });
   return app;

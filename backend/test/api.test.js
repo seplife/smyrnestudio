@@ -66,7 +66,10 @@ test("parcours complet : import, analyse, corrections, choix, exports, suppressi
   assert.equal(bad.status, 422);
   assert.equal(typeof (await bad.json()).detail, "string");
   assert.equal((await fetch(`${p}/choix`, j("PATCH", { mesure: "5/4" }))).status, 422);
-  assert.equal((await fetch(`${p}/export/pdf`)).status, 400);
+  assert.equal((await fetch(`${p}/export/xyz`)).status, 400);
+  const pdf = await fetch(`${p}/export/pdf`);
+  assert.equal(pdf.status, 200);
+  assert.equal(Buffer.from(await pdf.arrayBuffer()).subarray(0, 4).toString(), "%PDF");
 
   assert.equal((await fetch(p, { method: "DELETE" })).status, 204);
   assert.equal((await fetch(`${p}/analyse`)).status, 404);
